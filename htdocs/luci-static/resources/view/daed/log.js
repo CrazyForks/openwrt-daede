@@ -79,19 +79,19 @@ return view.extend({
 			state.paused = cbPause.checked;
 		});
 
-		const inFilter = E('input', { 'type': 'text', 'placeholder': _('Filter (substring)') });
+		const inFilter = E('input', { 'type': 'text', 'placeholder': 'Filter (substring)' });
 		inFilter.addEventListener('input', function() {
 			state.filter = inFilter.value.toLowerCase();
 			applyFilter();
 		});
 
-		const btnClear = E('button', { 'class': 'dd-log-btn' }, _('Clear View'));
+		const btnClear = E('button', { 'class': 'dd-log-btn' }, 'Clear View');
 		btnClear.addEventListener('click', function() {
 			while (pane.firstChild) pane.removeChild(pane.firstChild);
 			state.lastContent = '';
 		});
 
-		const btnDownload = E('button', { 'class': 'dd-log-btn' }, _('Download'));
+		const btnDownload = E('button', { 'class': 'dd-log-btn' }, 'Download');
 		btnDownload.addEventListener('click', function() {
 			const blob = new Blob([state.lastContent || ''], { type: 'text/plain' });
 			const url = URL.createObjectURL(blob);
@@ -104,7 +104,7 @@ return view.extend({
 			URL.revokeObjectURL(url);
 		});
 
-		const btnTruncate = E('button', { 'class': 'dd-log-btn' }, _('Clear File'));
+		const btnTruncate = E('button', { 'class': 'dd-log-btn' }, 'Clear File');
 		btnTruncate.addEventListener('click', function() {
 			if (!confirm(_('Truncate daed.log on the router? This cannot be undone.')))
 				return;
@@ -208,8 +208,8 @@ return view.extend({
 		tick();
 
 		const toolbar = E('div', { 'class': 'dd-log-toolbar' }, [
-			E('label', {}, [ cbAuto, _('Auto-scroll') ]),
-			E('label', {}, [ cbPause, _('Pause') ]),
+			E('label', {}, [ cbAuto, ' Auto-scroll' ]),
+			E('label', {}, [ cbPause, ' Pause' ]),
 			inFilter,
 			btnClear,
 			btnDownload,
@@ -219,7 +219,7 @@ return view.extend({
 
 		return E('div', { 'class': 'dd-log-wrap' }, [
 			E('style', {}, CSS),
-			E('h2', {}, [ _('Log') ]),
+			E('h2', {}, [ 'Log' ]),
 			toolbar,
 			pane
 		]);

@@ -4,7 +4,6 @@
 		"read": {
 			"file": {
 				"/var/log/daed/daed.log": [ "read" ],
-				"/proc/uptime": [ "read" ],
 				"/etc/init.d/daed status": [ "exec" ]
 			},
 			"ubus": {

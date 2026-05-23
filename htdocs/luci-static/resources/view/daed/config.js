@@ -45,40 +45,15 @@ function execInit(action) {
 }
 
 function fetchStatus() {
-	return Promise.all([
-		L.resolveDefault(callServiceList('daed'), {}),
-		L.resolveDefault(fs.read_direct('/proc/uptime'), '')
-	]).then(function(results) {
-		const svc = results[0];
-		let pid = 0, running = false, startTs = 0;
+	return L.resolveDefault(callServiceList('daed'), {}).then(function(svc) {
+		let pid = 0, running = false;
 		try {
 			const inst = svc['daed']['instances']['daed'];
 			running = !!inst.running;
 			pid = inst.pid || 0;
-			if (inst.start)
-				startTs = inst.start;
 		} catch (e) { /* not installed or not started */ }
-
-		let uptime = 0;
-		if (running && startTs) {
-			const sysUp = parseFloat((results[1] || '').split(' ')[0] || '0');
-			// procd "start" is monotonic seconds since boot
-			uptime = Math.max(0, Math.floor(sysUp - startTs));
-		}
-		return { running: running, pid: pid, uptime: uptime };
+		return { running: running, pid: pid };
 	});
-}
-
-function fmtUptime(sec) {
-	if (!sec || sec < 0) return '-';
-	const d = Math.floor(sec / 86400);
-	const h = Math.floor((sec % 86400) / 3600);
-	const m = Math.floor((sec % 3600) / 60);
-	const s = sec % 60;
-	if (d) return '%dd %dh %dm'.format(d, h, m);
-	if (h) return '%dh %dm %ds'.format(h, m, s);
-	if (m) return '%dm %ds'.format(m, s);
-	return '%ds'.format(s);
 }
 
 function renderStatusCard(state, listenAddr) {
@@ -89,12 +64,8 @@ function renderStatusCard(state, listenAddr) {
 		: E('span', { 'class': 'dd-badge dd-badge-stop' }, [ E('span', { 'class': 'dd-badge-dot' }), 'STOPPED' ]);
 
 	const meta = [];
-	if (state.running) {
-		if (state.pid)
-			meta.push(E('span', { 'class': 'dd-meta' }, [ E('span', { 'class': 'dd-meta-label' }, 'PID'), state.pid ]));
-		if (state.uptime > 0)
-			meta.push(E('span', { 'class': 'dd-meta' }, [ E('span', { 'class': 'dd-meta-label' }, 'Uptime'), fmtUptime(state.uptime) ]));
-	}
+	if (state.running && state.pid)
+		meta.push(E('span', { 'class': 'dd-meta' }, [ E('span', { 'class': 'dd-meta-label' }, 'PID'), state.pid ]));
 	meta.push(E('span', { 'class': 'dd-meta' }, [ E('span', { 'class': 'dd-meta-label' }, 'Listen'), listenAddr || '0.0.0.0:2023' ]));
 
 	const openBtn = E('a', {
@@ -102,7 +73,7 @@ function renderStatusCard(state, listenAddr) {
 		'href': 'http://%s:%s'.format(host, port),
 		'target': '_blank',
 		'rel': 'noreferrer noopener'
-	}, _('Open WebUI'));
+	}, 'Open WebUI');
 
 	const mkBtn = function(label, action, style) {
 		const b = E('button', { 'class': 'cbi-button cbi-button-' + style }, label);
@@ -115,8 +86,8 @@ function renderStatusCard(state, listenAddr) {
 	};
 
 	const actions = state.running
-		? [ openBtn, mkBtn(_('Restart'), 'restart', 'positive'), mkBtn(_('Reload'), 'reload', 'neutral'), mkBtn(_('Stop'), 'stop', 'negative') ]
-		: [ mkBtn(_('Start'), 'start', 'positive') ];
+		? [ openBtn, mkBtn('Restart', 'restart', 'positive'), mkBtn('Reload', 'reload', 'neutral'), mkBtn('Stop', 'stop', 'negative') ]
+		: [ mkBtn('Start', 'start', 'positive') ];
 
 	return [
 		E('div', { 'class': 'dd-status-row' }, [ badge ].concat(meta)),
@@ -137,7 +108,7 @@ return view.extend({
 
 		const statusBody = E('div', { 'id': 'dd-status-body' }, E('em', {}, _('Collecting data…')));
 		const statusCard = E('div', { 'class': 'dd-card' }, [
-			E('h4', { 'class': 'dd-card-title' }, _('Service Status')),
+			E('h4', { 'class': 'dd-card-title' }, 'Service Status'),
 			statusBody
 		]);
 
@@ -156,29 +127,29 @@ return view.extend({
 			_('A modern dashboard for dae — eBPF-based transparent proxy. Subscriptions, nodes, routing and DNS are managed in the daed WebUI.'));
 
 		// Basic card
-		s = m.section(form.NamedSection, 'config', 'daed', _('Basic'));
+		s = m.section(form.NamedSection, 'config', 'daed', 'Basic');
 		s.addremove = false;
 
-		o = s.option(form.Flag, 'enabled', _('Enable'));
+		o = s.option(form.Flag, 'enabled', 'Enable');
 		o.default = o.disabled;
 		o.rmempty = false;
 
-		o = s.option(form.Value, 'listen_addr', _('Listen Address'),
+		o = s.option(form.Value, 'listen_addr', 'Listen Address',
 			_('Host:port that the daed WebUI and GraphQL API listen on.'));
 		o.datatype = 'ipaddrport(1)';
 		o.default = '0.0.0.0:2023';
 		o.rmempty = false;
 
 		// Log card
-		s = m.section(form.NamedSection, 'config', 'daed', _('Log'));
+		s = m.section(form.NamedSection, 'config', 'daed', 'Log');
 		s.addremove = false;
 
-		o = s.option(form.Value, 'log_maxsize', _('Max Log Size (MB)'),
+		o = s.option(form.Value, 'log_maxsize', 'Max Log Size (MB)',
 			_('Rotate the log file once it grows past this many megabytes.'));
 		o.datatype = 'uinteger';
 		o.default = '5';
 
-		o = s.option(form.Value, 'log_maxbackups', _('Max Log Backups'),
+		o = s.option(form.Value, 'log_maxbackups', 'Max Log Backups',
 			_('Number of rotated log files to keep.'));
 		o.datatype = 'uinteger';
 		o.default = '1';
