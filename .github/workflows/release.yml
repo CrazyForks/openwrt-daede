@@ -108,10 +108,14 @@ jobs:
           path: all-artifacts
           pattern: packages-*
 
-      - name: Flatten release files
+      - name: Package by SDK
         run: |
-          mkdir -p dist
-          find all-artifacts -path "*/release/*" -type f -exec cp -v {} dist/ \;
+          mkdir -p dist/sdk24.10 dist/sdk25.12
+          find all-artifacts -path "*sdk24.10*/release/*" -type f -exec cp -v {} dist/sdk24.10/ \;
+          find all-artifacts -path "*sdk25.12*/release/*" -type f -exec cp -v {} dist/sdk25.12/ \;
+          tar -czf dist/luci-app-daede-sdk24.10-ipk.tar.gz -C dist/sdk24.10 .
+          tar -czf dist/luci-app-daede-sdk25.12-apk.tar.gz -C dist/sdk25.12 .
+          ls -lh dist/*.tar.gz
 
       - name: Determine tag
         id: meta
@@ -185,29 +189,30 @@ jobs:
 
             echo "## Packages / 安装包"
             echo ""
-            echo "> **luci-app-daede** 是纯 LuCI 前端包（noarch），各架构通用，已内置中文语言文件。"
-            echo "> 后缀含义：\`25.12\` = APK 格式（OpenWrt 主线），\`24.10\` = IPK 格式。"
+            echo "> 按 SDK 版本打包，解压后选对应架构安装即可。"
             echo ""
-
-            echo "### SDK 25.12 · APK 格式（OpenWrt 主线 / ImmortalWrt 快照）"
+            echo "| SDK | 格式 | 下载 |"
+            echo "| :--- | :--- | :--- |"
+            echo "| 24.10 | IPK (opkg) | [luci-app-daede-sdk24.10-ipk.tar.gz](${BASE}/luci-app-daede-sdk24.10-ipk.tar.gz) |"
+            echo "| 25.12 | APK       | [luci-app-daede-sdk25.12-apk.tar.gz](${BASE}/luci-app-daede-sdk25.12-apk.tar.gz) |"
             echo ""
-            for f in dist/*25.12*.apk; do
-              [ -f "$f" ] || continue
-              name=$(basename "$f")
-              # 从文件名提取架构：luci-app-daede-1.1-r1-aarch64_cortex-a53.apk
-              arch=$(echo "$name" | sed 's/.*-\([a-z0-9_]*\)\.apk$/\1/')
-              echo "- \`${arch}\` → [${name}](${BASE}/${name})"
-            done | sort
-
+            echo "### 包含架构"
             echo ""
-            echo "### SDK 24.10 · IPK 格式（OpenWrt 23.05 / ImmortalWrt 稳定版）"
-            echo ""
-            for f in dist/*.ipk; do
-              [ -f "$f" ] || continue
-              name=$(basename "$f")
-              # 文件名形如 luci-app-daede_1.1-r1_all.ipk
-              echo "- [${name}](${BASE}/${name})（all 架构通用）"
-            done | sort
+            for sdk_name in sdk24.10 sdk25.12; do
+              if [ "$sdk_name" = "sdk24.10" ]; then
+                echo "**SDK 24.10 (IPK)**"
+                ls dist/sdk24.10/*.ipk 2>/dev/null | while read f; do
+                  echo "- $(basename $f)"
+                done
+                echo ""
+              else
+                echo "**SDK 25.12 (APK)**"
+                ls dist/sdk25.12/*.apk 2>/dev/null | while read f; do
+                  echo "- $(basename $f)"
+                done
+                echo ""
+              fi
+            done
           } > release_notes.md
 
           cat release_notes.md
@@ -219,7 +224,7 @@ jobs:
           name: Release ${{ steps.meta.outputs.tag }}
           body_path: release_notes.md
           prerelease: ${{ steps.meta.outputs.prerelease }}
-          files: dist/**
+          files: dist/*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
