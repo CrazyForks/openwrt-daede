@@ -7,35 +7,19 @@ OpenWrt LuCI 管理界面，用于 **dae** 和 **daed** 透明代理后端。
 ### 一键安装
 
 ```bash
-wget -O - https://raw.githubusercontent.com/kenzok8/luci-app-daed/refs/heads/main/scripts/install.sh | ash
+wget -O - https://raw.githubusercontent.com/kenzok8/luci-app-daede/refs/heads/main/scripts/install.sh | ash
 ```
 
 大陆网络加速：
 
 ```bash
-wget --no-check-certificate -O - https://ghfast.top/https://raw.githubusercontent.com/kenzok8/luci-app-daed/refs/heads/main/scripts/install.sh | ash
-```
-
-### 持久软件源
-
-```bash
-wget -qO- https://down.dllkids.xyz/openwrt-feed/openwrt-feed-setup.sh | sh
-```
-
-添加后通过包管理器安装：
-
-```bash
-# opkg
-opkg update && opkg install luci-app-daede
-
-# apk
-apk update && apk add luci-app-daede
+wget --no-check-certificate -O - https://ghfast.top/https://raw.githubusercontent.com/kenzok8/luci-app-daede/refs/heads/main/scripts/install.sh | ash
 ```
 
 ### 卸载
 
 ```bash
-wget -O - https://raw.githubusercontent.com/kenzok8/luci-app-daed/refs/heads/main/scripts/uninstall.sh | ash
+wget -O - https://raw.githubusercontent.com/kenzok8/luci-app-daede/refs/heads/main/scripts/uninstall.sh | ash
 ```
 
 ## 使用

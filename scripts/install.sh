@@ -136,6 +136,7 @@ echo "Installing..."
 if [ "$PM" = "opkg" ]; then
   opkg install "$TMP_DIR/luci.${EXT}"
 else
+  echo "[WARN] 签名校验失败，临时使用 --allow-untrusted；构建完成稳定 key 上线后再跑一次本脚本即可。"
   apk add --allow-untrusted "$TMP_DIR/luci.${EXT}"
 fi
 
