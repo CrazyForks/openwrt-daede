@@ -35,7 +35,7 @@ const CSS = [
 	'.dd-backend-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}',
 	'.dd-backend-label{min-width:100px;font-size:12px;font-weight:600;opacity:.72}',
 	'.dd-backend-segment{display:inline-flex;align-items:center;gap:2px;padding:2px;border-radius:7px;background:rgba(128,128,128,.10)}',
-	'.dd-backend-btn{display:inline-flex;align-items:center;gap:6px;min-width:78px;height:24px;padding:0 10px;border:0;border-radius:5px;background:transparent;color:inherit;font-size:11px;font-weight:500;opacity:.65;cursor:pointer;transition:background .18s ease,color .18s ease,opacity .18s ease}',
+	'.dd-backend-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:78px;height:24px;padding:0 10px;border:0;border-radius:5px;background:transparent;color:inherit;font-size:11px;font-weight:500;opacity:.65;cursor:pointer;transition:background .18s ease,color .18s ease,opacity .18s ease}',
 	'.dd-backend-btn:hover{background:rgba(128,128,128,.10)}',
 	'.dd-backend-btn.is-active{background:linear-gradient(#3886a1,#2f7288);color:#fff;opacity:1;font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.12)}',
 	'.dd-backend-btn:disabled{opacity:.55;cursor:not-allowed}',
