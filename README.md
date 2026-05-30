@@ -3,9 +3,9 @@
 OpenWrt LuCI 管理界面，用于 **dae** 和 **daed** 透明代理后端。
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/daeuniverse/dae/main/logo.png" width="180" alt="dae">
+  <img src="https://raw.githubusercontent.com/daeuniverse/dae/main/logo.png" height="88" alt="dae">
   &nbsp;&nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/daeuniverse/daed/main/apps/web/public/logo-rounded.png" width="180" alt="daed">
+  <img src="https://raw.githubusercontent.com/daeuniverse/daed/main/apps/web/public/logo-rounded.png" height="88" alt="daed">
 </p>
 
 ## 界面预览
