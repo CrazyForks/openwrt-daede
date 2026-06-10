@@ -237,6 +237,7 @@ jobs:
           name: Release ${{ steps.meta.outputs.tag }}
           body_path: release_notes.md
           prerelease: ${{ steps.meta.outputs.prerelease }}
+          make_latest: ${{ steps.meta.outputs.prerelease == 'false' }}
           files: dist/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
