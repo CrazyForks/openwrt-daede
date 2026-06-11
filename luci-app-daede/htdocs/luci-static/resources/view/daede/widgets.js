@@ -4,7 +4,6 @@
 'require baseclass';
 'require fs';
 'require poll';
-'require ui';
 'require view.daede.backend as backend';
 
 function notifyAction() {}
@@ -39,11 +38,7 @@ function toggleService(be, turnOn, running) {
 			if (turnOn && be.useNetns)
 				return fs.exec('/sbin/ip', ['netns', 'del', 'daens']).catch(function() {});
 		})
-		.then(function() { return fs.exec(be.initd, [action]); })
-		.then(function(res) { notifyAction(action, res); })
-		.catch(function(e) {
-			ui.addNotification(null, E('p', _('Toggle failed: %s').format(e.message || e)), 'danger');
-		});
+		.then(function() { return fs.exec(be.initd, [action]); });
 }
 
 function renderBackendSwitcher(ctx) {
@@ -148,6 +143,7 @@ function renderStatusCard(ctx, listenAddr) {
 		if (be.hasWebUI)
 			meta.push(E('span', { 'class': 'dd-meta' }, [ E('span', { 'class': 'dd-meta-label' }, _('Listen')), listenAddr || be.defaultListen ]));
 
+		const swErr = E('span', { 'class': 'dd-meta dd-err', 'style': 'display:none' }, '');
 		const sw = E('button', { 'class': 'dd-switch' + (state.running ? ' is-on' : ''), 'type': 'button', 'aria-label': _('Toggle service') }, [
 			E('span', { 'class': 'dd-switch-knob' })
 		]);
@@ -155,6 +151,7 @@ function renderStatusCard(ctx, listenAddr) {
 			ev.preventDefault();
 			if (sw.disabled) return;
 			sw.disabled = true;
+			swErr.style.display = 'none';
 			const turnOn = !state.running;
 			/* instant optimistic feedback — the start/stop chain (esp. dae's eBPF
 			   load) takes a few seconds; flip the switch and show a pending label
@@ -166,11 +163,19 @@ function renderStatusCard(ctx, listenAddr) {
 				/* refresh as soon as the command returns, not on the next poll
 				   tick — this is what made feedback feel laggy */
 				.then(function() { return refresh(); })
+				.catch(function(e) {
+					/* revert the optimistic flip and show the reason inline */
+					sw.classList.toggle('is-on', !turnOn);
+					if (lbl) lbl.textContent = state.running ? 'ON' : 'OFF';
+					swErr.textContent = _('Toggle failed: %s').format(e.message || e);
+					swErr.style.display = '';
+				})
 				.finally(function() { sw.disabled = false; });
 		});
 
 		const row = E('div', { 'class': 'dd-status-row' }, [ badge ].concat(meta).concat([
 			E('span', { 'class': 'dd-grow' }),
+			swErr,
 			E('span', { 'class': 'dd-switch-wrap' }, [
 				E('span', { 'class': 'dd-switch-label' }, state.running ? 'ON' : 'OFF'),
 				sw

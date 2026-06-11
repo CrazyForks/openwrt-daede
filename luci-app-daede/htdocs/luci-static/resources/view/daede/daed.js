@@ -4,7 +4,6 @@
 'require baseclass';
 'require form';
 'require uci';
-'require ui';
 'require view.daede.widgets as widgets';
 
 function renderDaedSettings() {
@@ -41,6 +40,15 @@ function renderDaedSettings() {
 		/* native Save/Apply footer is suppressed view-wide, so daed carries its
 		   own primary action */
 		const status = E('span', { 'class': 'dd-editor-status' }, '');
+		let statusTimer = null;
+		function flash(text, kind, hold) {
+			status.textContent = text;
+			status.classList.remove('ok', 'err');
+			if (kind) status.classList.add(kind);
+			status.classList.add('show');
+			if (statusTimer) clearTimeout(statusTimer);
+			statusTimer = setTimeout(function() { status.classList.remove('show'); }, hold || 3000);
+		}
 		const save = E('button', { 'class': 'cbi-button cbi-button-positive' }, _('Save and Apply'));
 		save.addEventListener('click', function(ev) {
 			ev.preventDefault();
@@ -58,9 +66,9 @@ function renderDaedSettings() {
 				})
 				.catch(function(e) {
 					if (e && e.name === 'CBIValidationError')
-						ui.addNotification(null, E('p', _('Please fix the highlighted fields.')), 'warning');
+						flash(_('Please fix the highlighted fields.'), 'err', 6000);
 					else
-						ui.addNotification(null, E('p', _('Save failed: %s').format(e.message || e)), 'danger');
+						flash(_('Save failed: %s').format(e.message || e), 'err', 9000);
 				})
 				.finally(function() { save.disabled = false; });
 		});
