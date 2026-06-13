@@ -277,7 +277,7 @@ jobs:
           set -eu
           fail=0
           for sdk in 24.10 25.12; do
-            for arch in aarch64_cortex-a53 aarch64_cortex-a72 aarch64_generic x86_64; do
+            for arch in aarch64_cortex-a53 aarch64_cortex-a72 aarch64_generic i386_pentium4 x86_64; do
               dir="artifacts/packages-sdk${sdk}-${arch}/feed"
               for pkg in dae daed; do
                 if ls "$dir"/${pkg}_*.ipk >/dev/null 2>&1 || ls "$dir"/${pkg}-*.apk >/dev/null 2>&1; then
@@ -324,11 +324,31 @@ jobs:
               else
                 f=""
               fi
-              [ -n "$f" ] && manifest="${manifest}${pkg}=${f}"$'\n'
+              if [ -n "$f" ]; then
+                sha=$(sha256sum "$target/$f" | awk '{print $1}')
+                manifest="${manifest}${pkg}=${f}"$'\n'"${pkg}_sha256=${sha}"$'\n'
+              fi
             done
             [ -n "$manifest" ] && printf '%s' "$manifest" > "$target/manifest-daede.txt"
           done
           find feed -type f | sort
+
+      # Install rclone in its own step that holds NO secrets, so a tampered
+      # download can never read the B2 keys. Pinned version + checksum verify.
+      - name: Install rclone (pinned)
+        env:
+          RCLONE_VERSION: "1.69.1"
+        run: |
+          set -eu
+          zip="rclone-v${RCLONE_VERSION}-linux-amd64.zip"
+          base="https://downloads.rclone.org/v${RCLONE_VERSION}"
+          curl -fsSL -o "$zip" "${base}/${zip}"
+          # Verify against the checksum published in the pinned release's SHA256SUMS.
+          curl -fsSL -o SHA256SUMS "${base}/SHA256SUMS"
+          grep " ${zip}$" SHA256SUMS | sha256sum -c -
+          unzip -q "$zip"
+          sudo install -m 0755 "rclone-v${RCLONE_VERSION}-linux-amd64/rclone" /usr/local/bin/rclone
+          rclone version
 
       - name: Upload to Backblaze B2
         env:
@@ -337,7 +357,6 @@ jobs:
           B2_BUCKET: ${{ secrets.B2_BUCKET }}
         run: |
           [ -z "$B2_KEY_ID" ] && { echo "No B2 credentials, skipping"; exit 0; }
-          curl -fsSL https://rclone.org/install.sh | sudo bash
           mkdir -p ~/.config/rclone
           cat > ~/.config/rclone/rclone.conf <<EOF
           [b2]
